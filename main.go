@@ -1,13 +1,47 @@
 package main
 
 import (
+	"log"
 	"math/rand"
+	"net/http"
+	"os"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
 )
 
+func newRouter() *mux.Router {
+	r := mux.NewRouter()
+
+	r.PathPrefix("/css").Handler(http.FileServer(http.Dir("frontend/dist/")))
+	r.PathPrefix("/js").Handler(http.FileServer(http.Dir("frontend/dist/")))
+
+	r.PathPrefix("/").HandlerFunc(IndexHandler("frontend/dist/index.html"))
+
+	return r
+}
+
+func IndexHandler(entrypoint string) func(w http.ResponseWriter, r *http.Request) {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, entrypoint)
+	}
+	return http.HandlerFunc(fn)
+}
+
 func main() {
+
+	r := newRouter()
+
+	srv := &http.Server{
+		Handler:      handlers.LoggingHandler(os.Stdout, r),
+		Addr:         ":8000",
+		WriteTimeout: 15 * time.Second,
+		ReadTimeout:  15 * time.Second,
+	}
+
+	log.Fatal(srv.ListenAndServe())
 
 	/* fmt.Println("Hello world")
 
