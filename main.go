@@ -15,19 +15,13 @@ import (
 func newRouter() *mux.Router {
 	r := mux.NewRouter()
 
-	r.PathPrefix("/css").Handler(http.FileServer(http.Dir("frontend/dist/")))
-	r.PathPrefix("/js").Handler(http.FileServer(http.Dir("frontend/dist/")))
+	staticFiles := http.FileServer(http.Dir("frontend/dist/"))
 
+	r.PathPrefix("/css").Handler(staticFiles)
+	r.PathPrefix("/js").Handler(staticFiles)
 	r.PathPrefix("/").HandlerFunc(IndexHandler("frontend/dist/index.html"))
 
 	return r
-}
-
-func IndexHandler(entrypoint string) func(w http.ResponseWriter, r *http.Request) {
-	fn := func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, entrypoint)
-	}
-	return http.HandlerFunc(fn)
 }
 
 func main() {
